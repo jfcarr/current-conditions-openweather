@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 from datetime import datetime
+import time
 from os.path import exists
 import json
 import requests
@@ -58,7 +59,9 @@ def get_min_max_temp(current_temp):
 	'''
 	Track minimum and maximum temperatures for the day.
 	'''
+	current_time = datetime.now().strftime("%H:%M")
 	min_temp,max_temp = -99,-99
+	min_time,max_time = current_time,current_time
 
 	if exists(config_file):
 		with open(config_file, "r") as config_stream:
@@ -73,20 +76,33 @@ def get_min_max_temp(current_temp):
 				tracking_day = tracking_day.date()
 				min_temp = config_data["min_temp"]
 				max_temp = config_data["max_temp"]
+				if "min_time" in config_data:
+					min_time = config_data["min_time"]
+				if "max_time" in config_data:
+					max_time = config_data["max_time"]
 				if current_temp < min_temp:
 					min_temp = current_temp
+					min_time = current_time
 				if current_temp > max_temp:
 					max_temp = current_temp
+					max_time = current_time
 
 		output_dict = { }
 		output_dict["tracking_day"] = str(tracking_day)
 		output_dict["min_temp"] = min_temp
 		output_dict["max_temp"] = max_temp
+		output_dict["min_time"] = min_time
+		output_dict["max_time"] = max_time
 
 		with open(config_file, "w") as config_stream:
 			json.dump(output_dict, config_stream, indent=4)
-		
-	return (round(min_temp,rounding_precision),round(max_temp,rounding_precision))
+
+	return (round(min_temp,rounding_precision),round(max_temp,rounding_precision),time.strftime("%I:%M%p", strtotime(min_time)),time.strftime("%I:%M%p", strtotime(max_time)))
+
+def strtotime(time_string):
+    date_var = time.strptime(time_string, '%H:%M')
+
+    return date_var
 
 def get_sunrise_sunset(result):
 	'''
@@ -118,7 +134,7 @@ if __name__ == "__main__":
 	except:
 		wind_speed_gust = 0
 	wind_cardinal = get_cardinal_direction(result["wind"]["deg"])
-	min_temp,max_temp = get_min_max_temp(actual_temperature)
+	min_temp,max_temp,min_time,max_time = get_min_max_temp(actual_temperature)
 
 	(sunrise_str,sunset_str) = get_sunrise_sunset(result)
 
@@ -128,5 +144,9 @@ if __name__ == "__main__":
 	print(f"  -----")
 	#print(f"wind: {wind_cardinal} at {int(wind_speed)} MPH (gusting to {int(wind_speed_gust)})")
 	if min_temp != -99:
-		print(f"  today's min,max: {int(min_temp)}{degree_sign},{int(max_temp)}{degree_sign}")
-	print(f"  sun rise,set: {sunrise_str},{sunset_str}")
+		print(f"  min: {int(min_temp)}{degree_sign} at {min_time}")
+		print(f"  max: {int(max_temp)}{degree_sign} at {max_time}")
+		print(f"  -----")
+	print(f"  sunrise: {sunrise_str}")
+	print(f"   sunset: {sunset_str}")
+	
