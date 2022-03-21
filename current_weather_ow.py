@@ -97,7 +97,7 @@ def get_min_max_temp(current_temp):
 		with open(config_file, "w") as config_stream:
 			json.dump(output_dict, config_stream, indent=4)
 
-	return (round(min_temp,rounding_precision),round(max_temp,rounding_precision),time.strftime("%I:%M%p", strtotime(min_time)),time.strftime("%I:%M%p", strtotime(max_time)))
+	return (round(min_temp,rounding_precision),round(max_temp,rounding_precision),time.strftime("%I:%M %p", strtotime(min_time)),time.strftime("%I:%M %p", strtotime(max_time)))
 
 def strtotime(time_string):
     date_var = time.strptime(time_string, '%H:%M')
@@ -148,5 +148,5 @@ if __name__ == "__main__":
 		print(f"  max: {int(max_temp)}{degree_sign} at {max_time}")
 		print(f"  -----")
 	print(f"  sunrise: {sunrise_str}")
-	print(f"   sunset: {sunset_str}")
+	print(f"  sunset: {sunset_str}")
 	
