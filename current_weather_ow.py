@@ -108,22 +108,23 @@ def get_sunrise_sunset(result):
 	'''
 	Convert sunrise and sunset times from UNIX UTC to friendly strings, e.g., '07:42 AM' and '06:02 PM'
 	'''
-	sunrise_utc = result["sys"]["sunrise"]
-	sunset_utc = result["sys"]["sunset"]
-	timezone_offset = result["timezone"]
-
-	sunrise_value = datetime.utcfromtimestamp(sunrise_utc + timezone_offset)
-	sunset_value = datetime.utcfromtimestamp(sunset_utc + timezone_offset)
-
-	sunrise_str = str(sunrise_value.time().strftime("%I:%M %p"))
-	sunset_str = str(sunset_value.time().strftime("%I:%M %p"))
+	sunrise_str = get_formatted_time_from_utc(result["sys"]["sunrise"], result["timezone"])
+	sunset_str = get_formatted_time_from_utc(result["sys"]["sunset"], result["timezone"])
 
 	return (sunrise_str,sunset_str)
+
+def get_formatted_time_from_utc(utc_time, timezone_offset):
+	time_value = datetime.utcfromtimestamp(utc_time + timezone_offset)
+	time_str = str(time_value.time().strftime("%I:%M %p"))
+
+	return time_str
+
 
 if __name__ == "__main__":
 	result = json.loads(get_current_weather().text)
 
 	location = result["name"]
+	condition_time = get_formatted_time_from_utc(result["dt"],result["timezone"])
 	description = result["weather"][0]['description']
 	cloud_percent = result["clouds"]["all"]
 	actual_temperature = convert_temperature(result["main"]["temp"])
@@ -138,7 +139,7 @@ if __name__ == "__main__":
 
 	(sunrise_str,sunset_str) = get_sunrise_sunset(result)
 
-	print(location)
+	print(f"{location} @ {condition_time}")
 	print(f"  {int(actual_temperature)}{degree_sign} (feels like {int(feels_like_temperature)}{degree_sign})")
 	print(f"  {description}, {cloud_percent}% cloud cover")
 	print(f"  -----")
